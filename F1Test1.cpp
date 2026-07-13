@@ -5,9 +5,9 @@ using namespace std;
 
 int main(void)
 {
-	
 	initgraph(640, 480);
 	circle(320, 240, 100);
+	system("pause");
 	closegraph();
 	return 0;
 }
