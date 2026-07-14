@@ -8,3 +8,6 @@
 
 ### Alpha 0.1.1
 上传了blocks.cpp和main.cpp。
+
+### Alpha 0.1.4
+进行了游戏UI的初步设计。
