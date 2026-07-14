@@ -2,7 +2,15 @@
 #define BLOCKS_H
 #include <easyx/easyx.h>
 #include <easyx/graphics.h>
-#define SIDE_LENGTH = 20;
+
+const int sideLength = 1;
+const int playAreaRow = 10;
+const int playAreaCol = 15;
+const int resolutionRow = 540;
+const int resolutionCol = 960;
+const int resolutionRatio = resolutionRow / 64;
+int** matrixRotate(const int** mat, int r, int c);
+void freeMatrixMemory(int** mat, int r);
 
 //定义游戏类
 class Game
@@ -10,24 +18,34 @@ class Game
 private:
 	int score;
 	int time;
-	static bool movingPart;
-	static double difficulty;
+	bool movingPart;
+	double difficulty;
+	int playArea[playAreaRow][playAreaCol];
 public:
 	Game(int, int, double);
 	~Game();
-	void newPart();
-	void deleteLine();
+	void clearPlayArea();
 	int getScore();
 	int getTime();
 	double getDifficulty();
+	void newPart();
+	void deleteLine();
+	void gameInit();
+	void gameDrawHomeUI();
+	void gameDrawSettingUI();
+	void gameDrawPlayUI();
+	void gameStart();
+	void gameRestart();
+	void gameQuit();
+	void gameSetting();
+	void gameClose();
+	void playDraw();
 };
-
-bool Game::movingPart = false;
 
 //定义组成图形的方块类
 class Block
 {
-protected:
+private:
 	int posX;
 	int posY;
 	COLORREF color;
@@ -38,57 +56,52 @@ public:
 	int getBlockPosY();
 };
 
-class Part
+class Parts
 {
 protected:
-	Block baseBlock;
+	COLORREF color;
 public:
-	Part(int, int, COLORREF);
-	~Part();
+	Parts(COLORREF);
 	virtual void partRotate();
-	void partMoveLeft();
-	void partMoveRight();
-	void partMoveDown();
-	void partMoveBottom();
 };
 
-class PartZ : public Part
+class PartZ : public Parts
 {
 public:
 	void partRotate();
 };
 
-class PartS : public Part
+class PartS : public Parts
 {
 public:
 	void partRotate();
 };
 
-class PartL : public Part
+class PartL : public Parts
 {
 public:
 	void partRotate();
 };
 
-class PartJ : public Part
+class PartJ : public Parts
 {
 public:
 	void partRotate();
 };
 
-class PartO : public Part
+class PartO : public Parts
 {
 public:
 	void partRotate();
 };
 
-class PartT : public Part
+class PartT : public Parts
 {
 public:
 	void partRotate();
 };
 
-class PartI : public Part
+class PartI : public Parts
 {
 public:
 	void partRotate();
