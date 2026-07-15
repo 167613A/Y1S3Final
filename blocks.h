@@ -3,24 +3,80 @@
 #include <easyx/easyx.h>
 #include <easyx/graphics.h>
 
-const int sideLength = 1;
-const int playAreaRow = 10;
-const int playAreaCol = 15;
+const int sideLength = 3;
+const int playAreaCol = 10;
+const int playAreaRow = 16;
 const int resolutionRow = 540;
 const int resolutionCol = 960;
 const int resolutionRatio = resolutionRow / 64;
-int** matrixRotate(const int** mat, int r, int c);
-void freeMatrixMemory(int** mat, int r);
+const COLORREF ORANGE = 0x00A8FF;
+
+class Matrix
+{
+private:
+	int** data;
+	int row;
+	int col;
+	void matrixAllocate(int, int);
+	void matrixDeallocate();
+public:
+	Matrix();
+	Matrix(int, int);
+	~Matrix();
+	int& getData(int, int);
+	int getRow();
+	int getCol();
+	int setRow(int);
+	int setCol(int);
+	Matrix matrixRotate() const;
+	void matrixPrint() const;
+};
+
+//定义组成图形的方块类
+class Block
+{
+private:
+	int posX;
+	int posY;
+	COLORREF color;
+public:
+	Block(int, int, COLORREF);
+	~Block();
+	int getBlockPosX();
+	int getBlockPosY();
+	void drawBlock(int);
+};
+
+class Parts
+{
+protected:
+	COLORREF color;
+	Matrix shapeOrigin;
+	Matrix shapeRotated;
+	int rtTimes;
+	int bottomRow;
+public:
+	Parts(COLORREF, int);
+	virtual ~Parts();
+	void partSetColor();
+	int getBottomRow();
+	virtual void partRotate();
+	void partDrop();
+	void partMoveLeft();
+	void partMoveRight();
+	void partBottom();
+};
 
 //定义游戏类
 class Game
 {
 private:
 	int score;
-	int time;
+	int timer;
 	bool movingPart;
 	double difficulty;
-	int playArea[playAreaRow][playAreaCol];
+	int playArea[playAreaCol][playAreaRow];
+	Parts currentPart;
 public:
 	Game(int, int, double);
 	~Game();
@@ -42,69 +98,60 @@ public:
 	void playDraw();
 };
 
-//定义组成图形的方块类
-class Block
-{
-private:
-	int posX;
-	int posY;
-	COLORREF color;
-public:
-	Block(int, int, COLORREF);
-	~Block();
-	int getBlockPosX();
-	int getBlockPosY();
-};
-
-class Parts
-{
-protected:
-	COLORREF color;
-public:
-	Parts(COLORREF);
-	virtual void partRotate();
-};
-
 class PartZ : public Parts
 {
 public:
-	void partRotate();
+	PartZ(COLORREF);
+	~PartZ();
+	void partRotate() override;
 };
 
 class PartS : public Parts
 {
 public:
-	void partRotate();
+	PartS(COLORREF);
+	~PartS();
+	void partRotate() override;
 };
 
 class PartL : public Parts
 {
 public:
-	void partRotate();
+	PartL(COLORREF);
+	~PartL();
+	void partRotate() override;
 };
 
 class PartJ : public Parts
 {
 public:
-	void partRotate();
+	PartJ(COLORREF);
+	~PartJ();
+	void partRotate() override;
 };
 
 class PartO : public Parts
 {
 public:
-	void partRotate();
+	PartO(COLORREF);
+	~PartO();
+	void partRotate() override;
 };
 
 class PartT : public Parts
 {
 public:
-	void partRotate();
+	PartT(COLORREF);
+	~PartT();
+	void partRotate() override;
 };
 
 class PartI : public Parts
 {
 public:
-	void partRotate();
+	PartI(COLORREF);
+	~PartI();
+	void partRotate() override;
 };
 
 #endif
