@@ -4,11 +4,15 @@
 #include <easyx/graphics.h>
 
 const int sideLength = 3;
+
 const int playAreaCol = 10;
 const int playAreaRow = 16;
 const int resolutionRow = 540;
 const int resolutionCol = 960;
-const int resolutionRatio = resolutionRow / 64;
+const int resolutionRatio = resolutionCol / 64;
+
+const int partLinePosOrigin = 5;
+
 const COLORREF ORANGE = 0x00A8FF;
 
 class Matrix
@@ -23,13 +27,14 @@ public:
 	Matrix();
 	Matrix(int, int);
 	~Matrix();
-	int& getData(int, int);
+	int& at(int, int);
 	int getRow();
 	int getCol();
-	int setRow(int);
-	int setCol(int);
+	void setRow(int);
+	void setCol(int);
 	Matrix matrixRotate() const;
 	void matrixPrint() const;
+	Matrix& operator=(const Matrix& mat);
 };
 
 //定义组成图形的方块类
@@ -53,18 +58,20 @@ protected:
 	COLORREF color;
 	Matrix shapeOrigin;
 	Matrix shapeRotated;
+	Matrix shapeCurrent;
 	int rtTimes;
 	int bottomRow;
+	int movesRight;
 public:
 	Parts(COLORREF, int);
 	virtual ~Parts();
 	void partSetColor();
 	int getBottomRow();
 	virtual void partRotate();
-	void partDrop();
+	void partSoftDrop();
+	void partHardDrop();
 	void partMoveLeft();
 	void partMoveRight();
-	void partBottom();
 };
 
 //定义游戏类
@@ -91,6 +98,7 @@ public:
 	void gameDrawSettingUI();
 	void gameDrawPlayUI();
 	void gameStart();
+	void copyCurrentPart();
 	void gameRestart();
 	void gameQuit();
 	void gameSetting();
