@@ -6,8 +6,6 @@ using namespace std;
 void Matrix::matrixAllocate(int r, int c)
 {
 	data = new int*[r];
-	row = r;
-	col = c;
 	for(int i = 0; i < r; i++)
 	{
 		data[i] = new int[c];
@@ -28,33 +26,41 @@ void Matrix::matrixDeallocate()
 	data = nullptr;
 }
 
+Matrix::Matrix() {}
+Matrix::Matrix(int r, int c) : row(r), col(c)
+{
+	matrixAllocate(r, c);
+}
+Matrix::~Matrix()
+{
+	matrixDeallocate();
+}
+
 int Block::getBlockPosX() {return posX;}
 int Block::getBlockPosY() {return posY;}
 
-Parts::Parts(COLORREF clr, int t) : color(clr), rtTimes(t)
+Parts::Parts(COLORREF clr, int t = 0) : color(clr), rtTimes(t)
 {
 	bottomRow = 0;
 }
 Parts::~Parts() {}
 int Parts::getBottomRow() {return bottomRow;}
 
-void Parts::matrixPartRotate(int** cur, int** ori, int** rot, int row, int col)
+
+void Parts::partRotate()
 {
 	switch(rtTimes % 2) 
 	{
 	case 0:
-		rot = matrixRotate(ori, row, col);
-		cur = rot;
+		shapeRotated = shapeOrigin.matrixRotate();
 		break;
 	case 1:
-		ori = matrixRotate(rot, col, row);
-		cur = ori;
+		shapeOrigin = shapeRotated.matrixRotate();
 		break;
 	default:
 		break;
 	}
 }
-void Parts::partRotate() {}
 
 void Parts::partDrop()
 {
@@ -62,14 +68,14 @@ void Parts::partDrop()
 }
 
 
-Game::Game(int s, int t, double d) : score(s), time(t), difficulty(d), currentPart(Parts(WHITE, 0))
+Game::Game(int s, int t, double d) : score(s), timer(t), difficulty(d), currentPart(Parts(WHITE, 0))
 {
 	movingPart = false;
 }
 
 Game::~Game() {}
 int Game::getScore() {return score;}
-int Game::getTime() {return time;}
+int Game::getTime() {return timer;}
 double Game::getDifficulty() {return difficulty;}
 
 void Game::clearPlayArea()
@@ -127,101 +133,72 @@ void Game::newPart()
 
 PartZ::PartZ(COLORREF clr) : Parts(clr, 0)
 {
-	matrixNewMemory(ori, 2, 3);
-	matrixNewMemory(rot, 3, 2);
+	shapeOrigin = Matrix(2, 3);
+	shapeRotated = Matrix(3, 2);
 }
 PartZ::~PartZ()
 {
-	freeMatrixMemory(ori, 2);
-	freeMatrixMemory(rot, 3);
+	shapeOrigin.~Matrix();
+	shapeRotated.~Matrix();
 }
 
 PartS::PartS(COLORREF clr) : Parts(clr, 0)
 {
-	matrixNewMemory(ori, 2, 3);
-	matrixNewMemory(rot, 3, 2);
+	shapeOrigin = Matrix(2, 3);
+	shapeRotated = Matrix(3, 2);
 }
 PartS::~PartS()
 {
-	freeMatrixMemory(ori, 2);
-	freeMatrixMemory(rot, 3);
+	shapeOrigin.~Matrix();
+	shapeRotated.~Matrix();
 }
 
 PartL::PartL(COLORREF clr) : Parts(clr, 0)
 {
-	matrixNewMemory(ori, 2, 3);
-	matrixNewMemory(rot, 3, 2);
+	shapeOrigin = Matrix(2, 3);
+	shapeRotated = Matrix(3, 2);
 }
 PartL::~PartL()
 {
-	freeMatrixMemory(ori, 2);
-	freeMatrixMemory(rot, 3);
+	shapeOrigin.~Matrix();
+	shapeRotated.~Matrix();
 }
 
 PartJ::PartJ(COLORREF clr) : Parts(clr, 0)
 {
-	matrixNewMemory(ori, 2, 3);
-	matrixNewMemory(rot, 3, 2);
-}
-PartJ::~PartJ()
-{
-	freeMatrixMemory(ori, 2);
-	freeMatrixMemory(rot, 3);
+	shapeOrigin = Matrix(2, 3);
+	shapeRotated = Matrix(3, 2);
 }
 
 PartO::PartO(COLORREF clr) : Parts(clr, 0)
 {
-	matrixNewMemory(ori, 2, 2);
+	shapeOrigin = Matrix(2, 2);
+	shapeRotated = Matrix(2, 2);
 }
 PartO::~PartO()
 {
-	freeMatrixMemory(ori, 2);
+	shapeOrigin.~Matrix();
+	shapeRotated.~Matrix();
 }
 
 PartT::PartT(COLORREF clr) : Parts(clr, 0)
 {
-	matrixNewMemory(ori, 2, 3);
-	matrixNewMemory(rot, 3, 2);
+	shapeOrigin = Matrix(2, 3);
+	shapeRotated = Matrix(3, 2);
 }
 PartT::~PartT()
 {
-	freeMatrixMemory(ori, 2);
-	freeMatrixMemory(rot, 3);
+	shapeOrigin.~Matrix();
+	shapeRotated.~Matrix();
 }
 
 PartI::PartI(COLORREF clr) : Parts(clr, 0)
 {
-	matrixNewMemory(ori, 4, 1);
-	matrixNewMemory(rot, 1, 4);
+	shapeOrigin = Matrix(4, 1);
+	shapeRotated = Matrix(1, 4);
 }
 PartI::~PartI()
 {
-	freeMatrixMemory(ori, 4);
-	freeMatrixMemory(rot, 1);
-}
-
-void PartZ::partRotate()
-{
-	matrixPartRotate(cur, ori, rot, 2, 3);
-}
-void PartS::partRotate()
-{
-	matrixPartRotate(cur, ori, rot, 2, 3);
-}
-void PartL::partRotate()
-{
-	matrixPartRotate(cur, ori, rot, 2, 3);
-}
-void PartJ::partRotate()
-{
-	matrixPartRotate(cur, ori, rot, 2, 3);
-}
-void PartO::partRotate() {}
-void PartT::partRotate()
-{
-	matrixPartRotate(cur, ori, rot, 2, 3);
-}
-void PartI::partRotate()
-{
-	matrixPartRotate(cur, ori, rot, 4, 1);
+	shapeOrigin.~Matrix();
+	shapeRotated.~Matrix();
 }

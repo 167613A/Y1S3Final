@@ -20,11 +20,14 @@ private:
 	void matrixAllocate(int, int);
 	void matrixDeallocate();
 public:
+	Matrix();
 	Matrix(int, int);
 	~Matrix();
 	int& getData(int, int);
 	int getRow();
 	int getCol();
+	int setRow(int);
+	int setCol(int);
 	Matrix matrixRotate() const;
 	void matrixPrint() const;
 };
@@ -48,9 +51,8 @@ class Parts
 {
 protected:
 	COLORREF color;
-	Matrix cur;
-	Matrix ori;
-	Matrix rot;
+	Matrix shapeOrigin;
+	Matrix shapeRotated;
 	int rtTimes;
 	int bottomRow;
 public:
@@ -59,7 +61,6 @@ public:
 	void partSetColor();
 	int getBottomRow();
 	virtual void partRotate();
-	void matrixPartRotate(int**, int**, int**, int, int);
 	void partDrop();
 	void partMoveLeft();
 	void partMoveRight();
@@ -71,7 +72,7 @@ class Game
 {
 private:
 	int score;
-	int time;
+	int timer;
 	bool movingPart;
 	double difficulty;
 	int playArea[playAreaCol][playAreaRow];
