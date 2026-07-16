@@ -11,14 +11,17 @@ const int resolutionRow = 540;
 const int resolutionCol = 960;
 const int resolutionRatio = resolutionCol / 64;
 
-const int partLinePosOrigin = 5;
+const int partPosOrigin = 4;
+
+const int partLenX[7] = {3, 3, 3, 3, 2, 3, 1};
+const int partLenY[7] = {2, 2, 2, 2, 2, 2, 4};
 
 const COLORREF ORANGE = 0x00A8FF;
 
 class Matrix
 {
 private:
-	int** data;
+	COLORREF** data;
 	int row;
 	int col;
 	void matrixAllocate(int, int);
@@ -27,7 +30,7 @@ public:
 	Matrix();
 	Matrix(int, int);
 	~Matrix();
-	int& at(int, int);
+	COLORREF& at(int, int);
 	int getRow();
 	int getCol();
 	void setRow(int);
@@ -49,10 +52,12 @@ public:
 	~Block();
 	int getBlockPosX();
 	int getBlockPosY();
+	void setBlockPosX(int);
+	void setBlockPosY(int);
 	void drawBlock(int);
 };
 
-class Parts
+class Part
 {
 protected:
 	COLORREF color;
@@ -62,9 +67,11 @@ protected:
 	int rtTimes;
 	int bottomRow;
 	int movesRight;
+	int lenX;
+	int lenY;
 public:
-	Parts(COLORREF, int);
-	virtual ~Parts();
+	Part(COLORREF, int, int, int);
+	virtual ~Part();
 	void partSetColor();
 	int getBottomRow();
 	virtual void partRotate();
@@ -74,6 +81,21 @@ public:
 	void partMoveRight();
 };
 
+class Setting
+{
+private:
+	double difficulty;
+	COLORREF bgColor;
+	COLORREF partColor[7];
+public:
+	Setting(double, COLORREF);
+	~Setting();
+	double getDifficulty();
+	void setBgColor(COLORREF);
+	void setPartColor(int, COLORREF);
+	COLORREF getPartColor(int);
+};
+
 //定义游戏类
 class Game
 {
@@ -81,16 +103,15 @@ private:
 	int score;
 	int timer;
 	bool movingPart;
-	double difficulty;
-	int playArea[playAreaCol][playAreaRow];
-	Parts currentPart;
+	Setting settings;
+	COLORREF playArea[playAreaCol][playAreaRow];
+	Part currentPart;
 public:
-	Game(int, int, double);
+	Game(int, int, double, COLORREF);
 	~Game();
 	void clearPlayArea();
 	int getScore();
 	int getTime();
-	double getDifficulty();
 	void newPart();
 	void deleteLine();
 	void gameInit();
@@ -104,60 +125,61 @@ public:
 	void gameSetting();
 	void gameClose();
 	void playDraw();
+	void checkFinishedLine();
 };
 
-class PartZ : public Parts
+class PartZ : public Part
 {
 public:
-	PartZ(COLORREF);
+	PartZ(COLORREF, int, int);
 	~PartZ();
 	void partRotate() override;
 };
 
-class PartS : public Parts
+class PartS : public Part
 {
 public:
-	PartS(COLORREF);
+	PartS(COLORREF, int, int);
 	~PartS();
 	void partRotate() override;
 };
 
-class PartL : public Parts
+class PartL : public Part
 {
 public:
-	PartL(COLORREF);
+	PartL(COLORREF, int, int);
 	~PartL();
 	void partRotate() override;
 };
 
-class PartJ : public Parts
+class PartJ : public Part
 {
 public:
-	PartJ(COLORREF);
+	PartJ(COLORREF, int, int);
 	~PartJ();
 	void partRotate() override;
 };
 
-class PartO : public Parts
+class PartO : public Part
 {
 public:
-	PartO(COLORREF);
+	PartO(COLORREF, int, int);
 	~PartO();
 	void partRotate() override;
 };
 
-class PartT : public Parts
+class PartT : public Part
 {
 public:
-	PartT(COLORREF);
+	PartT(COLORREF, int, int);
 	~PartT();
 	void partRotate() override;
 };
 
-class PartI : public Parts
+class PartI : public Part
 {
 public:
-	PartI(COLORREF);
+	PartI(COLORREF, int, int);
 	~PartI();
 	void partRotate() override;
 };
