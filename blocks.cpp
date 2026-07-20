@@ -88,26 +88,55 @@ Matrix& Matrix::operator=(const Matrix& mat)
 	return *this;
 }
 
+/*----------------------------------------*/
+
 Block::Block(int x, int y, COLORREF clr) : posX(x), posY(y), color(clr) {}
 Block::~Block() {}
 int Block::getBlockPosX() {return posX;}
 int Block::getBlockPosY() {return posY;}
 void Block::setBlockPosX(int x) {posX = x;}
 void Block::setBlockPosY(int y) {posY = y;}
-void Block::drawBlock(int sl)
+void Block::drawBlock(int sl, COLORREF clr)
 {
-	setfillcolor(color);
+	setfillcolor(clr);
 	fillrectangle(posX, posY, posX + sl, posY + sl);
 	loadimage(NULL, _T("blocks.jpg"), sl, sl, false);
+}
+
+/*----------------------------------------*/
+
+Part::Part()
+{
+	color = WHITE;
+	rtTimes = 0;
+	bottomRow = 0;
+	movesRight = 0;
+	lenX = 0;
+	lenY = 0;
 }
 
 Part::Part(COLORREF clr, int t, int x, int y) : color(clr), rtTimes(t), lenX(x), lenY(y)
 {
 	bottomRow = 0;
 }
+
 Part::~Part() {}
 int Part::getBottomRow() {return bottomRow;}
-
+int Part::getMovesRight() {return movesRight;}
+void Part::setPartColor(COLORREF clr) {color = clr;}
+void Part::setPartLenX(int x) {lenX = x;}
+void Part::setPartLenY(int y) {lenY = y;}
+void Part::setOriginShape(int part, COLORREF clr)
+{
+	color = clr;
+	shapeOrigin = Matrix(partLenY[part], partLenX[part]);
+	shapeRotated = Matrix(partLenX[part], partLenY[part]);
+	for(int i = 0; i < 4; i++)
+	{
+		shapeOrigin.at(partOriX[part][i], partOriY[part][i]) = clr;
+	}
+	shapeCurrent = shapeOrigin;
+}
 
 void Part::partRotate()
 {
@@ -152,6 +181,27 @@ void Part::partMoveRight()
 	}
 }
 
+Part& Part::operator=(const Part& pt)
+{
+	if(this == &pt)
+	{
+		return *this;
+	}
+	
+	color = pt.color;
+	shapeOrigin = pt.shapeOrigin;
+	shapeRotated = pt.shapeRotated;
+	shapeCurrent = shapeOrigin;
+	rtTimes = 0;
+	bottomRow = 0;
+	movesRight = 0;
+	lenX = pt.lenX;
+	lenY = pt.lenY;
+	return *this;
+}
+
+/*----------------------------------------*/
+
 Setting::Setting(double d, COLORREF bgclr) : difficulty(d), bgColor(bgclr)
 {
 	partColor[0] = CYAN;
@@ -162,6 +212,17 @@ Setting::Setting(double d, COLORREF bgclr) : difficulty(d), bgColor(bgclr)
 	partColor[5] = GREEN;
 	partColor[6] = BLUE;
 }
+
+Setting::Setting(const Setting& sets)
+{
+	difficulty = sets.difficulty;
+	bgColor = sets.bgColor;
+	for(int i = 0; i < 7; i++)
+	{
+		partColor[i] = sets.partColor[i];
+	}
+}
+
 Setting::~Setting() {}
 double Setting::getDifficulty() {return difficulty;}
 void Setting::setBgColor(COLORREF clr) {bgColor = clr;}
@@ -174,203 +235,84 @@ void Setting::setPartColor(int part, COLORREF clr)
 	}
 		cout << "[Setting::setPartColor]Illegal part!" << endl;
 }
+COLORREF Setting::getBgColor() {return bgColor;}
 COLORREF Setting::getPartColor(int part) {return partColor[part];}
 
+/*----------------------------------------*/
 
-Game::Game(int s, int t, double d, COLORREF bgColor) : score(s), timer(t), settings(Setting(d, bgColor)), currentPart(Part(WHITE, 0, 0, 0))
+Play::Play(const Setting& sets, int s, int l, int t, bool mp, bool hp) : settings(Setting(sets)), score(s), lines(l), timer(t), movingPart(mp), isHoldingPart(hp) {clearPlayArea();}
+int Play::getScore() {return score;}
+int Play::getTime() {return timer;}
+void Play::clearPlayArea()
 {
-	movingPart = false;
-}
-
-Game::~Game() {}
-int Game::getScore() {return score;}
-int Game::getTime() {return timer;}
-
-void Game::clearPlayArea()
-{
-	for(int i = 0; i < playAreaCol; i++)
+	for(int i = 0; i < playAreaX; i++)
 	{
-		for(int j = 0; j < playAreaRow; j++)
+		for(int j = 0; j < playAreaY; j++)
 		{
-			playArea[i][j] = getbkcolor();
+			playArea[i][j] = settings.getBgColor();
 		}
 	}
 }
 
-void Game::gameInit()
+void Play::newPart()
 {
-	clearPlayArea();
-	initgraph(resolutionRow, resolutionCol);
-	setaspectratio(resolutionRatio, resolutionRatio);
+	int part = rand() % 7;
+	currentPart.setOriginShape(part, settings.getPartColor(part));
+	movingPart = true;
 }
 
-void Game::gameDrawHomeUI()
-{
-	;
-}
-
-void Game::newPart()
-{
-	switch(rand() % 8) 
-	{
-	case 1:
-		currentPart = PartZ(settings.getPartColor(0), 3, 2);
-		movingPart = true;
-		break;
-	case 2:
-		currentPart = PartS(MAGENTA, 3, 2);
-		movingPart = true;
-		break;
-	case 3:
-		currentPart = PartL(RED, 3, 2);
-		movingPart = true;
-		break;
-	case 4:
-		currentPart = PartJ(ORANGE, 3, 2);
-		movingPart = true;
-		break;
-	case 5:
-		currentPart = PartO(YELLOW, 2, 2);
-		movingPart = true;
-		break;
-	case 6:
-		currentPart = PartT(GREEN, 3, 2);
-		movingPart = true;
-		break;
-	case 7:
-		currentPart = PartI(BLUE, 1, 4);
-		movingPart = true;
-		break;
-	default:
-		movingPart = false;
-		break;
-	}
-}
-
-void Game::playDraw()
+void Play::playDraw()
 {
 	COLORREF currentColor;
 	Block tempBlock(0, 0, WHITE);
-	for(int x = 0; x < playAreaRow; x++)
+	for(int x = 0; x < playAreaY; x++)
 	{
-		for(int y = 0; y < playAreaCol; y++)
+		for(int y = 0; y < playAreaX; y++)
 		{
 			currentColor = playArea[y][x];
 			tempBlock.setBlockPosX(x);
-			tempBlock.drawBlock(sideLength);
+			tempBlock.drawBlock(sideLength, currentColor);
 			tempBlock.~Block();
 		}
 	}
 }
 
-PartZ::PartZ(COLORREF clr, int x, int y) : Part(clr, 0, x, y)
+void Play::copyCurrentPart()
 {
-	shapeOrigin = Matrix(y, x);
-	shapeRotated = Matrix(x, y);
-	shapeOrigin.at(0, 0) = 1;
-	shapeOrigin.at(0, 1) = 1;
-	shapeOrigin.at(1, 1) = 1;
-	shapeOrigin.at(1, 2) = 1;
-	shapeCurrent = shapeOrigin;
-}
-PartZ::~PartZ()
-{
-	shapeOrigin.~Matrix();
-	shapeRotated.~Matrix();
+	int startCol = partPosOrigin + currentPart.getMovesRight();
+	for(int i = startCol; i < startCol + (rtTimes % 2 ? ); i++)
+	{
+		
+	};
 }
 
-PartS::PartS(COLORREF clr, int x, int y) : Part(clr, 0, x, y)
+void Play::holdCurrentPart()
 {
-	shapeOrigin = Matrix(y, x);
-	shapeRotated = Matrix(x, y);
-	shapeOrigin.at(0, 1) = 2;
-	shapeOrigin.at(0, 2) = 2;
-	shapeOrigin.at(1, 0) = 2;
-	shapeOrigin.at(1, 1) = 2;
-	shapeCurrent = shapeOrigin;
-}
-PartS::~PartS()
-{
-	shapeOrigin.~Matrix();
-	shapeRotated.~Matrix();
-}
-
-PartL::PartL(COLORREF clr, int x, int y) : Part(clr, 0, x, y)
-{
-	shapeOrigin = Matrix(y, x);
-	shapeRotated = Matrix(x, y);
-	shapeOrigin.at(0, 2) = 3;
-	shapeOrigin.at(1, 0) = 3;
-	shapeOrigin.at(1, 1) = 3;
-	shapeOrigin.at(1, 2) = 3;
-	shapeCurrent = shapeOrigin;
-}
-PartL::~PartL()
-{
-	shapeOrigin.~Matrix();
-	shapeRotated.~Matrix();
+	if(isHoldingPart)
+	{
+		Part tempPart;
+		tempPart = holdPart;
+		holdPart = currentPart;
+		currentPart = tempPart;
+	}
+	else
+	{
+		isHoldingPart = true;
+		holdPart = currentPart;
+		movingPart = false;
+	}
 }
 
-PartJ::PartJ(COLORREF clr, int x, int y) : Part(clr, 0, x, y)
+/*----------------------------------------*/
+
+Game::Game(double d, COLORREF bgColor) : settings(Setting(d, bgColor)), gamePlay(Play(settings, 0, 0, 0, false, false)) {}
+Game::~Game() {}
+void Game::gameInit()
 {
-	shapeOrigin = Matrix(y, x);
-	shapeRotated = Matrix(x, y);
-	shapeOrigin.at(0, 0) = 4;
-	shapeOrigin.at(1, 0) = 4;
-	shapeOrigin.at(1, 1) = 4;
-	shapeOrigin.at(1, 2) = 4;
-	shapeCurrent = shapeOrigin;
-}
-PartJ::~PartJ()
-{
-	shapeOrigin.~Matrix();
-	shapeRotated.~Matrix();
+	initgraph(resolutionRow, resolutionCol);
 }
 
-PartO::PartO(COLORREF clr, int x, int y) : Part(clr, 0, x, y)
+void Game::gameDrawHomeUI()
 {
-	shapeOrigin = Matrix(y, x);
-	shapeRotated = Matrix(x, y);
-	shapeOrigin.at(0, 0) = 5;
-	shapeOrigin.at(0, 1) = 5;
-	shapeOrigin.at(1, 0) = 5;
-	shapeOrigin.at(1, 1) = 5;
-	shapeCurrent = shapeOrigin;
-}
-PartO::~PartO()
-{
-	shapeOrigin.~Matrix();
-	shapeRotated.~Matrix();
-}
-
-PartT::PartT(COLORREF clr, int x, int y) : Part(clr, 0, x, y)
-{
-	shapeOrigin = Matrix(y, x);
-	shapeRotated = Matrix(x, y);
-	shapeOrigin.at(0, 1) = 6;
-	shapeOrigin.at(1, 0) = 6;
-	shapeOrigin.at(1, 1) = 6;
-	shapeOrigin.at(1, 2) = 6;
-	shapeCurrent = shapeOrigin;
-}
-PartT::~PartT()
-{
-	shapeOrigin.~Matrix();
-	shapeRotated.~Matrix();
-}
-
-PartI::PartI(COLORREF clr, int x, int y) : Part(clr, 0, x, y)
-{
-	shapeOrigin = Matrix(y, x);
-	shapeRotated = Matrix(x, y);
-	shapeOrigin.at(0, 0) = 7;
-	shapeOrigin.at(1, 0) = 7;
-	shapeOrigin.at(2, 0) = 7;
-	shapeOrigin.at(3, 0) = 7;
-	shapeCurrent = shapeOrigin;
-}
-PartI::~PartI()
-{
-	shapeOrigin.~Matrix();
-	shapeRotated.~Matrix();
+	;
 }
