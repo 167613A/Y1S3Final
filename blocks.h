@@ -33,8 +33,8 @@ public:
 	Matrix(int, int);
 	~Matrix();
 	COLORREF& at(int, int);					//引用对应位置元素地址
-	int getRow();
-	int getCol();
+	int getRow() const;
+	int getCol() const;
 	void setRow(int);
 	void setCol(int);
 	Matrix matrixRotate() const;			//矩阵旋转
@@ -52,11 +52,11 @@ private:
 public:
 	Block(int, int, COLORREF);
 	~Block();
-	int getBlockPosX();
-	int getBlockPosY();
+	int getBlockPosX() const;
+	int getBlockPosY() const;
 	void setBlockPosX(int);
 	void setBlockPosY(int);
-	void drawBlock(int, COLORREF);			//绘制方块 (边长, 颜色)
+	void drawBlock(int, COLORREF) const;	//绘制方块 (边长, 颜色)
 };
 
 class Part
@@ -76,17 +76,20 @@ public:
 	Part(COLORREF, int, int, int);
 	~Part();
 	void partSetColor();
-	int getBottomRow();
-	int getMovesRight();
+	int getBottomRow() const;
+	int getMovesRight() const;
+	int getLenX() const;
+	int getLenY() const;
+	COLORREF getData(int, int);
 	void setPartColor(COLORREF);
 	void setPartLenX(int);
 	void setPartLenY(int);
 	void setOriginShape(int, COLORREF);		//设置部件初始形态
 	void partRotate();						//部件旋转
-	void partSoftDrop();					//部件下落一格
-	void partHardDrop();					//部件降至落地
-	void partMoveLeft();					//部件左移
-	void partMoveRight();					//部件右移
+	bool partSoftDrop();					//部件下落一格
+	bool partHardDrop();					//部件降至落地
+	bool partMoveLeft();					//部件左移
+	bool partMoveRight();					//部件右移
 	Part& operator=(const Part&);			//重载运算符=：部件复制
 };
 
@@ -94,18 +97,18 @@ class Setting
 {
 private:
 	double difficulty;
-	COLORREF bgColor;						//背景颜色
+	COLORREF bkColor;						//背景颜色
 	COLORREF partColor[7];					//部件颜色(顺序为ZSLJOTI)
 public:
 	Setting(double, COLORREF);
 	Setting(const Setting&);
 	~Setting();
-	double getDifficulty();
+	double getDifficulty() const;
 	void setDifficulty(double);
-	void setBgColor(COLORREF);
+	void setBkColor(COLORREF);
 	void setPartColor(int, COLORREF);
-	COLORREF getBgColor();
-	COLORREF getPartColor(int);
+	COLORREF getBkColor() const;
+	COLORREF getPartColor(int) const;
 };
 
 class Play
@@ -125,14 +128,18 @@ public:
 	~Play();
 	void setSettings(const Setting&); 		//获取设置
 	void clearPlayArea();					//清除游玩区域
-	void playDraw();						//绘制游玩区域
-	void playDrawUI();						//绘制游玩界面UI
-	int getScore();
-	int getTime();
+	void playDraw() const;					//绘制游玩区域
+	void playDrawUI() const;				//绘制游玩界面UI
+	int getScore() const;
+	int getTime() const;
 	void newPart();							//生成新部件
-	void copyCurrentPart();					//复制控制部件至游玩区域
+	bool leftCurrentPart();					//左移控制部件
+	bool rightCurrentPart();				//右移控制部件
+	bool dropCurrentPart();					//硬着陆控制部件
+	bool copyCurrentPart();					//复制控制部件至游玩区域
 	void holdCurrentPart();					//将控制部件与暂存部件交换
-	void checkFinishedLine();				//检查行是否完整
+	bool checkFinishedLine();				//检查行是否完整
+	void playRunning();						//游玩界面运行主程序
 };
 
 //定义游戏类

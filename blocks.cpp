@@ -3,6 +3,7 @@
 #include <algorithm>
 using namespace std;
 
+//分配内存到矩阵
 void Matrix::matrixAllocate(int r, int c)
 {
 	data = new COLORREF*[r];
@@ -16,6 +17,7 @@ void Matrix::matrixAllocate(int r, int c)
 	}
 }
 
+//释放矩阵占用内存
 void Matrix::matrixDeallocate()
 {
 	for(int i = 0; i < row; i++)
@@ -26,6 +28,7 @@ void Matrix::matrixDeallocate()
 	data = nullptr;
 }
 
+//构造函数与析构函数
 Matrix::Matrix() {}
 Matrix::Matrix(int r, int c) : row(r), col(c)
 {
@@ -36,12 +39,16 @@ Matrix::~Matrix()
 	matrixDeallocate();
 }
 
+//外部通过行列位置获取数据地址，可做左值和右值
 COLORREF& Matrix::at(int r, int c) {return data[r][c];}
-int Matrix::getRow() {return row;}
-int Matrix::getCol() {return col;}
+
+//外部获取与设置内部变量
+int Matrix::getRow() const {return row;}
+int Matrix::getCol() const {return col;}
 void Matrix::setRow(int r) {row = r;}
 void Matrix::setCol(int c) {col = c;}
 
+//旋转矩阵
 Matrix Matrix::matrixRotate() const
 {
 	Matrix res(col, row);
@@ -55,6 +62,7 @@ Matrix Matrix::matrixRotate() const
 	return res;
 }
 
+//打印矩阵：用于调试
 void Matrix::matrixPrint() const
 {
 	for(int i = 0; i < row; i++)
@@ -67,6 +75,7 @@ void Matrix::matrixPrint() const
 	}
 }
 
+//重载运算符=：用于复制矩阵
 Matrix& Matrix::operator=(const Matrix& mat)
 {
 	if(this == &mat)
@@ -90,13 +99,18 @@ Matrix& Matrix::operator=(const Matrix& mat)
 
 /*----------------------------------------*/
 
+//构造函数与析构函数
 Block::Block(int x, int y, COLORREF clr) : posX(x), posY(y), color(clr) {}
 Block::~Block() {}
-int Block::getBlockPosX() {return posX;}
-int Block::getBlockPosY() {return posY;}
+
+//外部获取内部变量
+int Block::getBlockPosX() const {return posX;}
+int Block::getBlockPosY() const {return posY;}
 void Block::setBlockPosX(int x) {posX = x;}
 void Block::setBlockPosY(int y) {posY = y;}
-void Block::drawBlock(int sl, COLORREF clr)
+
+//绘制方块，需提供方块边长与颜色
+void Block::drawBlock(int sl, COLORREF clr) const
 {
 	setfillcolor(clr);
 	fillrectangle(posX, posY, posX + sl, posY + sl);
@@ -105,6 +119,7 @@ void Block::drawBlock(int sl, COLORREF clr)
 
 /*----------------------------------------*/
 
+//构造函数与析构函数
 Part::Part()
 {
 	color = WHITE;
@@ -114,18 +129,26 @@ Part::Part()
 	lenX = 0;
 	lenY = 0;
 }
-
 Part::Part(COLORREF clr, int t, int x, int y) : color(clr), rtTimes(t), lenX(x), lenY(y)
 {
 	bottomRow = 0;
 }
-
 Part::~Part() {}
-int Part::getBottomRow() {return bottomRow;}
-int Part::getMovesRight() {return movesRight;}
+
+//外部获取内部变量
+int Part::getBottomRow() const {return bottomRow;}
+int Part::getMovesRight() const {return movesRight;}
+//获取当前部件长宽数据
+int Part::getLenX() const {return rtTimes % 2 ? lenX : lenY;}
+int Part::getLenY() const {return rtTimes % 2 ? lenY : lenX;}
+COLORREF Part::getData(int a, int b) {return shapeCurrent.at(a, b);}
+
+//外部设置内部变量
 void Part::setPartColor(COLORREF clr) {color = clr;}
 void Part::setPartLenX(int x) {lenX = x;}
 void Part::setPartLenY(int y) {lenY = y;}
+
+//部件预设初始化
 void Part::setOriginShape(int part, COLORREF clr)
 {
 	color = clr;
@@ -138,6 +161,7 @@ void Part::setOriginShape(int part, COLORREF clr)
 	shapeCurrent = shapeOrigin;
 }
 
+//部件旋转(Up, W, LCTRL)
 void Part::partRotate()
 {
 	switch(rtTimes % 2) 
@@ -155,32 +179,42 @@ void Part::partRotate()
 	}
 }
 
-void Part::partSoftDrop()
+//部件操纵模块，返回是否成功的布尔值
+//部件下降(Down, S)
+bool Part::partSoftDrop()
 {
-	;
+	return false;
 }
 
-void Part::partHardDrop()
+//部件硬着陆(RCTRL, Space, E)
+bool Part::partHardDrop()
 {
-	;
+	return false;
 }
 
-void Part::partMoveLeft()
+//部件左移(Left, A)
+bool Part::partMoveLeft()
 {
 	if(partPosOrigin + movesRight > 0)
 	{
 		movesRight--;
+		return true;
 	}
+	return false;
 }
 
-void Part::partMoveRight()
+//部件右移(Right, D)
+bool Part::partMoveRight()
 {
 	if(partPosOrigin + movesRight < 9)
 	{
 		movesRight++;
+		return true;
 	}
+	return false;
 }
 
+//重载运算符=：用于复制部件
 Part& Part::operator=(const Part& pt)
 {
 	if(this == &pt)
@@ -202,7 +236,8 @@ Part& Part::operator=(const Part& pt)
 
 /*----------------------------------------*/
 
-Setting::Setting(double d, COLORREF bgclr) : difficulty(d), bgColor(bgclr)
+//构造函数与析构函数，外部获取当前难度
+Setting::Setting(double d, COLORREF bkclr) : difficulty(d), bkColor(bkclr)
 {
 	partColor[0] = CYAN;
 	partColor[1] = MAGENTA;
@@ -216,7 +251,7 @@ Setting::Setting(double d, COLORREF bgclr) : difficulty(d), bgColor(bgclr)
 Setting::Setting(const Setting& sets)
 {
 	difficulty = sets.difficulty;
-	bgColor = sets.bgColor;
+	bkColor = sets.bkColor;
 	for(int i = 0; i < 7; i++)
 	{
 		partColor[i] = sets.partColor[i];
@@ -224,8 +259,11 @@ Setting::Setting(const Setting& sets)
 }
 
 Setting::~Setting() {}
-double Setting::getDifficulty() {return difficulty;}
-void Setting::setBgColor(COLORREF clr) {bgColor = clr;}
+double Setting::getDifficulty() const {return difficulty;}
+
+//设置与外部获取背景颜色与部件颜色
+void Setting::setBkColor(COLORREF clr) {bkColor = clr;}
+//设置部件颜色，part值0-6对应顺序为ZSLJOTI
 void Setting::setPartColor(int part, COLORREF clr)
 {
 	if(0 <= part && part <= 6)
@@ -235,25 +273,30 @@ void Setting::setPartColor(int part, COLORREF clr)
 	}
 		cout << "[Setting::setPartColor]Illegal part!" << endl;
 }
-COLORREF Setting::getBgColor() {return bgColor;}
-COLORREF Setting::getPartColor(int part) {return partColor[part];}
+COLORREF Setting::getBkColor() const {return bkColor;}
+COLORREF Setting::getPartColor(int part) const {return partColor[part];}
 
 /*----------------------------------------*/
 
+//构造函数与析构函数，外部获取变量值函数
 Play::Play(const Setting& sets, int s, int l, int t, bool mp, bool hp) : settings(Setting(sets)), score(s), lines(l), timer(t), movingPart(mp), isHoldingPart(hp) {clearPlayArea();}
-int Play::getScore() {return score;}
-int Play::getTime() {return timer;}
+Play::~Play() {}
+int Play::getScore() const {return score;}
+int Play::getTime() const {return timer;}
+
+//清除游玩区域
 void Play::clearPlayArea()
 {
 	for(int i = 0; i < playAreaX; i++)
 	{
 		for(int j = 0; j < playAreaY; j++)
 		{
-			playArea[i][j] = settings.getBgColor();
+			playArea[i][j] = settings.getBkColor();
 		}
 	}
 }
 
+//生成新部件
 void Play::newPart()
 {
 	int part = rand() % 7;
@@ -261,7 +304,8 @@ void Play::newPart()
 	movingPart = true;
 }
 
-void Play::playDraw()
+//绘制游玩区域
+void Play::playDraw() const
 {
 	COLORREF currentColor;
 	Block tempBlock(0, 0, WHITE);
@@ -277,20 +321,55 @@ void Play::playDraw()
 	}
 }
 
-void Play::copyCurrentPart()
+//复制当前控件至游玩区域，若能复制则返回true，已触底返回false
+bool Play::copyCurrentPart()
 {
 	int startCol = partPosOrigin + currentPart.getMovesRight();
-	for(int i = startCol; i < startCol + (rtTimes % 2 ? ); i++)
+	int startRow = currentPart.getBottomRow() - currentPart.getLenY() + 1;
+	for(int i = startCol; i < startCol + currentPart.getLenX(); i++)
 	{
-		
-	};
+		for(int j = startRow; j < startRow + currentPart.getLenY(); j++)
+		{
+			if(playArea[i][j] != settings.getBkColor())
+			{
+				return false;
+			}
+		}
+	}
+	for(int i = startCol; i < startCol + currentPart.getLenX(); i++)
+	{
+		for(int j = startRow; j < startRow + currentPart.getLenY(); j++)
+		{
+			playArea[i][j] = currentPart.getData(i - startCol, j - startRow);
+		}
+	}
+	return true;
 }
 
+//左移当前部件
+bool Play::leftCurrentPart()
+{
+	return currentPart.partMoveLeft();
+}
+
+//右移当前部件
+bool Play::rightCurrentPart()
+{
+	return currentPart.partMoveRight();
+}
+
+//硬着陆当前部件
+bool Play::dropCurrentPart()
+{
+	return false;
+}
+
+//暂存当前部件
 void Play::holdCurrentPart()
 {
 	if(isHoldingPart)
 	{
-		Part tempPart;
+		Part tempPart(WHITE, 4, 4, 0);
 		tempPart = holdPart;
 		holdPart = currentPart;
 		currentPart = tempPart;
@@ -305,13 +384,13 @@ void Play::holdCurrentPart()
 
 /*----------------------------------------*/
 
-Game::Game(double d, COLORREF bgColor) : settings(Setting(d, bgColor)), gamePlay(Play(settings, 0, 0, 0, false, false)) {}
+Game::Game(double d, COLORREF bkColor) : settings(Setting(d, bkColor)), gamePlay(Play(settings, 0, 0, 0, false, false)) {}
 Game::~Game() {}
-void Game::gameInit()
-{
-	initgraph(resolutionRow, resolutionCol);
-}
 
+//游戏初始化
+void Game::gameInit() {initgraph(resolutionRow, resolutionCol);}
+
+//绘制主界面
 void Game::gameDrawHomeUI()
 {
 	;
